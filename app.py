@@ -12,6 +12,7 @@ df = pd.read_csv("prevalence_summaries/combined.tsv", sep="\t")
 # make a list of all the variants found in the summary file
 all_variants = list(df)[4:]
 all_variants.sort()
+# make a list of all the unique datasets in the Dataset column
 datasets = df.Dataset.unique().tolist()
 datasets.sort()
 
@@ -29,7 +30,9 @@ app.layout = html.Div(
         ),
         # tiled map split up by dataset
         dcc.Graph(id="graph-content"),
+        # year selector
         dcc.RadioItems(value=datasets[0], options=datasets, id="dataset", inline=True),
+        # detail graph 
         dcc.Graph(id="detail-graph"),
     ]
 )
@@ -60,7 +63,7 @@ def update_graph(variant):
             hover_name="HFname",
             height=800,
             hover_data=["sample_size"],
-            center={"lat": -5.347294315841304, "lon": 34.39018365447818},
+            # center={"lat": -5.347294315841304, "lon": 34.39018365447818},
             facet_col="Dataset",
         )
         fig.update_traces(
