@@ -1,17 +1,26 @@
-Bootstrap: docker
-From: condaforge/miniforge3
+Bootstrap: library
+From: ubuntu 
 Stage: conda
 
 %post
-    mamba create -q -y -p /conda_env \
-        plotly \
-        dash \
-        numpy \
-        gunicorn \
-        pandas \
-        geojson
-        # scikit-learn \
-        # werkzeug
+    apt -y update
+    # apt -y upgrade
+    apt -y install \
+        curl \
+        bzip2 \
+        dialog
+    cd /opt && curl -Ls \
+        https://micro.mamba.pm/api/micromamba/linux-64/latest | \
+        tar -xvj bin/micromamba
+    export PATH=/opt/bin:$PATH
+    micromamba create -y -q \
+        -c conda-forge \
+        -p /conda_env \
+            dash \
+            gunicorn \
+            numpy \
+            pandas \
+            plotly
 
 
 Bootstrap: docker
@@ -22,7 +31,7 @@ Stage: final
     /conda_env /
 
 %environment
-    PATH=/conda_env/bin:$PATH
+    PATH=/conda_env/bin:/opt/bin:$PATH
     PYTHONDONTWRITEBYTECODE=1
 
 %startscript
