@@ -7,7 +7,7 @@ app = Dash(__name__)
 server = app.server
 
 # read in the prevalence summary file
-df = pd.read_csv("prevalence_summaries/combined.tsv", sep="\t")
+df = pd.read_csv("/home/charlie/charlie_choropleths/complete_summary.csv")
 
 # make a list of all the variants found in the summary file
 all_variants = list(df)[4:]
