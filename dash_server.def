@@ -1,18 +1,8 @@
-Bootstrap: library
-From: ubuntu 
+Bootstrap: docker
+From: mambaorg/micromamba
 Stage: conda
 
 %post
-    apt -y update
-    # apt -y upgrade
-    apt -y install \
-        curl \
-        bzip2 \
-        dialog
-    cd /opt && curl -Ls \
-        https://micro.mamba.pm/api/micromamba/linux-64/latest | \
-        tar -xvj bin/micromamba
-    export PATH=/opt/bin:$PATH
     micromamba create -y -q \
         -c conda-forge \
         -p /conda_env \
