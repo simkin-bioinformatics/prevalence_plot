@@ -1,70 +1,43 @@
-#! /home/charlie/data/Dropbox/scatterplot/env/bin/python
-
-# this script can be used to add coordinates to a csv file containing prevalences in a geographic region
-# input: prevalence.csv file with regions or health facility names with their prevalences
-# input: metadata.csv file that has the coordinates associated with each geographic location
-# output: prevalence_with_coords.csv file
-# it will look up the coordinates of each region in the metadata file and add them to the prevalence sheet
-
-from urllib.request import urlopen
-from dash import Dash, html, dcc, callback, Output, Input
-import plotly.express as px
-import json
+metadata_file = "/home/charlie/projects/charlie_choropleths/new_data/DRC_metadata.tsv"
+hfname_file = "/home/charlie/projects/charlie_choropleths/new_data/prevalences.tsv"
+updated_file = "/home/charlie/projects/charlie_choropleths/new_data/prevalences_with_coords.tsv"
 import pandas as pd
 
 
-metadata_file = (
-    "/home/charlie/data/Dropbox/scatterplot/charlie_choropleths/2023/metadata.csv"
-)
-prevalence_summary_file = "/home/charlie/data/Dropbox/scatterplot/charlie_choropleths/2023/summaries/HFname:all_3_1_prevalence_summary.tsv"
-updated_prevalence_summary = "2023_prevalence_summary.tsv"
+def update_summary_file(metadata_file, hfname_file, updated_file, dataset):
+    mdf = pd.read_csv(metadata_file, sep = '\t')
+    lat_dict = dict(zip(mdf['province'], mdf['Latitude']))
+    lon_dict = dict(zip(mdf['province'], mdf['Longitude']))
+    df = pd.read_csv(hfname_file, sep = "\t")
+    df = df[df["province"] != 'overall']
+    df.insert(1, "Latitude", df['province'].map(lat_dict))
+    df.insert(2, "Longitude", df['province'].map(lon_dict))
+    df.insert(3, "Dataset", dataset)
+
+    ssdf = pd.DataFrame({})
+    for column in (df.columns[4:]):
+        ssdf[column] = df[column].str.split('(').str[1].str.split('/').str[1].str.split(')').str[0].astype(int)
+        if (ssdf[column].sum()) == 0:
+            df = df.drop(column, axis=1)
+    for column in (df.columns[4:]):
+        if '.1' in column:
+            df = df.drop(column, axis=1)
+    df.to_csv(updated_file, index=False)
 
 
-def create_site_dict(metadata_file):
-    """
-    creates a dictionary of format {HFname: [lat, lon]} and reports if any HFnames have
-    multiple coordinates associated with them
-    """
-    df = pd.read_csv(metadata_file)
-    hf_list = df["HFname"].to_list()
-    hf_list = [str(x) for x in hf_list]
-    lat_list = df["Latitude"].to_list()
-    lon_list = df["Longitude"].to_list()
-    full_list = list(set(zip(hf_list, lat_list, lon_list)))
-    full_list.sort()
-    site_dict = {}
-    for item in full_list:
-        HFname, lat, lon = item
-        if HFname not in site_dict:
-            site_dict[HFname] = [lat, lon]
-        else:
-            print(
-                HFname + " has multiple coordinates in the metadata file, please check"
-            )
-    return site_dict
+    return df
+
+df = update_summary_file(metadata_file, hfname_file, updated_file, 'DRC')
+
+# complete_summary = pd.concat([df21, df22, df23])
+
+# dot_error = complete_summary.loc[:,"HFname":"Dataset"]
+# for column in complete_summary.columns:
+#     if '.1' in column:
+#         original = column.replace(".1","")
+#         dot_error[original] = complete_summary[original]
+#         dot_error[column] = complete_summary[column]
+#     dot_error.to_csv('dot_1_errors.csv')
 
 
-def append_coordinates(
-    metadata_file, prevalence_summary_file, updated_prevalence_summary
-):
-    site_dict = create_site_dict(metadata_file)
-    prevalence_df = pd.read_csv(prevalence_summary_file, sep="\t")
-
-    def get_lat(x):
-        if x in site_dict:
-            return site_dict[x][0]
-
-    def get_lon(x):
-        if x in site_dict:
-            return site_dict[x][1]
-
-    prevalence_df.insert(
-        1, "Latitude", prevalence_df["HFname"].map(lambda x: get_lat(x))
-    )
-    prevalence_df.insert(
-        2, "Longitude", prevalence_df["HFname"].map(lambda x: get_lon(x))
-    )
-    # print(prevalence_df)
-    prevalence_df.to_csv(updated_prevalence_summary, index=False, sep="\t")
-
-append_coordinates(metadata_file, prevalence_summary_file, updated_prevalence_summary)
+# complete_summary.to_csv('complete_summary.csv', index=False)
