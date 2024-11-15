@@ -1,5 +1,10 @@
 #! /home/charlie/data/Dropbox/scatterplot/env/bin/python
 
+# this script can be used to add coordinates to a csv file containing prevalences in a geographic region
+# input: prevalence.csv file with regions or health facility names with their prevalences
+# input: metadata.csv file that has the coordinates associated with each geographic location
+# output: prevalence_with_coords.csv file
+# it will look up the coordinates of each region in the metadata file and add them to the prevalence sheet
 
 from urllib.request import urlopen
 from dash import Dash, html, dcc, callback, Output, Input
