@@ -7,7 +7,7 @@ app = Dash(__name__)
 server = app.server
 
 # read in the prevalence summary file
-df = pd.read_csv("/home/charlie/charlie_choropleths/complete_summary.csv")
+df = pd.read_csv("prevalence_summaries/DRC_prevalences_with_coords.tsv")
 
 # make a list of all the variants found in the summary file
 all_variants = list(df)[4:]
@@ -78,7 +78,7 @@ def update_graph(variant):
     Input("variant-selection", "value"),
 )
 def make_detail_graph(dataset, variant):
-    df = pd.read_csv("prevalence_summaries/combined.tsv", sep="\t")
+    df = pd.read_csv("prevalence_summaries/DRC_prevalences_with_coords.tsv")
     if variant in list(df)[3:]:
         df["prevalence"] = df[variant].str.split(" ").str[0].astype(float)
         max_prevalence = max(df["prevalence"].to_list())
@@ -86,7 +86,7 @@ def make_detail_graph(dataset, variant):
             df[variant].str.split("/").str[1].str.replace(")", "").astype(float)
         )
         df = df[df["sample_size"] > 0]
-        df = df[df["Dataset"] == int(dataset)]
+        # df = df[df["Dataset"] == int(dataset)]
 
         fig = px.scatter_map(
             df,
@@ -95,13 +95,14 @@ def make_detail_graph(dataset, variant):
             color="prevalence",
             size="sample_size",
             # color_continuous_scale='cividis',
-            range_color=(0, max_prevalence),
-            zoom=4.7,
-            hover_name="HFname",
+            # range_color=(0, max_prevalence),
+            range_color=(0,1),
+            zoom=3.8,
+            hover_name="province",
             height=600,
             width=600,
             hover_data=["sample_size"],
-            center={"lat": -5.347294315841304, "lon": 34.39018365447818},
+            center={"lat": -1.6815695315287824, "lon": 22.744896416745945},
         )
     return fig
 
